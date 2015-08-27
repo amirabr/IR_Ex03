@@ -17,7 +17,7 @@ import org.apache.lucene.util.Version;
 
 public class Indexer {
 
-	private IndexWriter writer;
+	private IndexWriter writer; 	// Creates and maintains an index
 	
 	/**
 	 * Constructor.
@@ -52,17 +52,24 @@ public class Indexer {
 		
 	}
 
+	/**
+	 * Creates a new document from the given parameters and returns it.
+	 * 
+	 * @param docID
+	 * @param contents
+	 * @return
+	 */
 	private Document createDocument(String docID, StringReader contents) {
       
 		Document document;
 		Field docIDField;
-		Field contentField;
+		Field contentsField;
 		
 		// Initialize the document object
 		document = new Document();
 
-		// Define the 'content' field
-		contentField = new Field(LuceneConstants.CONTENTS,
+		// Define the 'contents' field
+		contentsField = new Field(LuceneConstants.CONTENTS,
 								 contents);
 
 		// Define the 'docID' field
@@ -72,7 +79,7 @@ public class Indexer {
 							   Field.Index.NOT_ANALYZED);
 
 		// Add the fields to the document
-		document.add(contentField);
+		document.add(contentsField);
 		document.add(docIDField);
 
 		// Return it
@@ -80,6 +87,16 @@ public class Indexer {
 		
 	}   
 
+	/**
+	 * Indexes the document.
+	 * It first calls createDocument() with the given parameters to create the document,
+	 * and then adds it to the index using the index writer.
+	 * 
+	 * @param docID
+	 * @param contents
+	 * @throws CorruptIndexException
+	 * @throws IOException
+	 */
 	private void indexDocument(String docID, StringReader contents) throws CorruptIndexException, IOException {
 		
 		System.out.println("Indexing docID #" + docID);
@@ -88,6 +105,14 @@ public class Indexer {
 		
 	}
 
+	/**
+	 * Creates the search engine's index, from the given docs file.
+	 * Currently, it only indexes 2 fields: the docID and the contents of the document.
+	 * 
+	 * @param docsPath
+	 * @return
+	 * @throws IOException
+	 */
 	public int createIndex(String docsPath) throws IOException {
 
 		BufferedReader inputStream = null;
