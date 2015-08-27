@@ -72,6 +72,7 @@ public class Searcher {
 	 */
 	public Document getDocument(ScoreDoc scoreDoc) throws CorruptIndexException, IOException {
 		
+		// Return the document
 		return indexSearcher.doc(scoreDoc.doc);
 		
 	}

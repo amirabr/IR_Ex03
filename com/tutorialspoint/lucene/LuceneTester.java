@@ -9,66 +9,112 @@ import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.TopDocs;
 
 public class LuceneTester {
+
+	String indexDir = "/Users/amir/Desktop/lucene/Index";
+	String dataDir = "/Users/amir/Desktop/lucene/Data";
+	String docsPath = "/Users/amir/Desktop/lucene/Data/records.txt";
 	
-   String indexDir = "/Users/amir/Desktop/lucene/Index";
-   String dataDir = "/Users/amir/Desktop/lucene/Data";
-   String docsPath = "/Users/amir/Desktop/lucene/Data/records.txt";
-   Indexer indexer;
-   Searcher searcher;
+	Indexer indexer;
+	Searcher searcher;
 
-   public static void main(String[] args) {
-      LuceneTester tester;
-      try {
-         tester = new LuceneTester();
-         tester.deleteCurrentIndex();
-         tester.createIndex();
-         tester.search("Mohan");
-      } catch (IOException e) {
-         e.printStackTrace();
-      } catch (ParseException e) {
-         e.printStackTrace();
-      }
-   }
+	public static void main(String[] args) {
+		
+		LuceneTester tester;
+		
+		try {
+			
+			tester = new LuceneTester();
+			tester.deleteIndex();
+			tester.createIndex();
+			tester.search("Mohan");
+			tester.search("jan");
+			
+			System.out.println("DONE");
 
-   private void createIndex() throws IOException{
-      indexer = new Indexer(indexDir);
-      int numIndexed;
-      long startTime = System.currentTimeMillis();	
-      numIndexed = indexer.createIndex(docsPath);
-      long endTime = System.currentTimeMillis();
-      indexer.close();
-      System.out.println(numIndexed+" File indexed, time taken: "
-         +(endTime-startTime)+" ms");		
-   }
+		} catch (IOException e) {
+			e.printStackTrace();
+		} catch (ParseException e) {
+			e.printStackTrace();
+		}
 
-   private void search(String searchQuery) throws IOException, ParseException{
-      searcher = new Searcher(indexDir);
-      long startTime = System.currentTimeMillis();
-      TopDocs hits = searcher.search(searchQuery);
-      long endTime = System.currentTimeMillis();
-   
-      System.out.println(hits.totalHits +
-         " documents found. Time :" + (endTime - startTime));
-      for(ScoreDoc scoreDoc : hits.scoreDocs) {
-         Document doc = searcher.getDocument(scoreDoc);
-            System.out.println("File: "
-            + doc.get(LuceneConstants.DOCID));
-      }
-      searcher.close();
-   }
-   
-   private void deleteCurrentIndex() {
+	}
+	
+	/**
+	 * Searches the index for the given query.
+	 * 
+	 * @param searchQuery
+	 * @throws IOException
+	 * @throws ParseException
+	 */
+	private void search(String searchQuery) throws IOException, ParseException {
+		
+		System.out.println("Searching for \"" + searchQuery + "\"...");
+		
+		// Initialize the searcher
+		searcher = new Searcher(indexDir);
+	      
+		// Execute the query
+		TopDocs hits = searcher.search(searchQuery);
 	   
-      File[] files = new File(indexDir).listFiles();
+		System.out.println(hits.totalHits + " documents found:");
+		
+		// Print the search results
+		for(ScoreDoc scoreDoc : hits.scoreDocs) {
+			
+			Document doc = searcher.getDocument(scoreDoc);
+			System.out.println("\t+ docID: " + doc.get(LuceneConstants.DOCID));
+			
+		}
+		
+		// Close the searcher
+		searcher.close();
+		
+	}
+
+	/**
+	 * Creates a new index.
+	 * 
+	 * @throws IOException
+	 */
+	private void createIndex() throws IOException {
+
+		int numIndexed;
+		
+		System.out.println("Starting index:");
+		
+		// Create the index
+		indexer = new Indexer(indexDir);
+		numIndexed = indexer.createIndex(docsPath);
+		indexer.close();
+		
+		System.out.println(numIndexed + " files successfully indexed.");
+		
+   }
+   
+	/**
+	 * Deletes the old index.
+	 * 
+	 */
+   private void deleteIndex() {
+	   
+	   int numDeleted = 0;
+	   
+	   System.out.println("Deleting old index:"); 
+
+	   // List all the old index files
+	   File[] files = new File(indexDir).listFiles();
       
-      for (File file : files) {
-    	  if (!file.isDirectory() && !file.isHidden() && file.exists() && file.canRead()) {
-    		  
-    		  System.out.println("deleting: " + file.getAbsolutePath());
-    		  file.delete();
-        	  
-          }
-       }
+	   // Iterate over the files and delete them
+	   for (File file : files) {
+		   if (!file.isDirectory() && !file.isHidden() && file.exists() && file.canRead()) {
+			   System.out.println("\tDeleting: " + file.getAbsolutePath());
+			   file.delete();
+			   numDeleted++;
+		   }
+	   }
+      
+	   System.out.println(numDeleted + " files successfully deleted.");
 
    }
+   
 }
