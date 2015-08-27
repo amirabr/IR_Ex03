@@ -1,5 +1,6 @@
 package com.tutorialspoint.lucene;
 
+import java.io.File;
 import java.io.IOException;
 
 import org.apache.lucene.document.Document;
@@ -19,6 +20,7 @@ public class LuceneTester {
       LuceneTester tester;
       try {
          tester = new LuceneTester();
+         tester.deleteCurrentIndex();
          tester.createIndex();
          tester.search("Mohan");
       } catch (IOException e) {
@@ -53,5 +55,20 @@ public class LuceneTester {
             + doc.get(LuceneConstants.DOCID));
       }
       searcher.close();
+   }
+   
+   private void deleteCurrentIndex() {
+	   
+      File[] files = new File(indexDir).listFiles();
+      
+      for (File file : files) {
+    	  if (!file.isDirectory() && !file.isHidden() && file.exists() && file.canRead()) {
+    		  
+    		  System.out.println("deleting: " + file.getAbsolutePath());
+    		  file.delete();
+        	  
+          }
+       }
+
    }
 }
