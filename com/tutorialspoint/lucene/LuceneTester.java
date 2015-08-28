@@ -12,7 +12,8 @@ public class LuceneTester {
 
 	String indexDir = "/Users/amir/Desktop/lucene/Index";
 	String dataDir = "/Users/amir/Desktop/lucene/Data";
-	String docsPath = "/Users/amir/Desktop/lucene/Data/records.txt";
+//	String docsPath = "/Users/amir/Desktop/lucene/Data/records.txt";
+	String docsPath = "/Users/amir/Desktop/docs.txt";
 	
 	Indexer indexer;
 	Searcher searcher;
@@ -26,8 +27,10 @@ public class LuceneTester {
 			tester = new LuceneTester();
 			tester.deleteIndex();
 			tester.createIndex();
-			tester.search("Mohan");
-			tester.search("jan");
+//			tester.search("Mohan");
+//			tester.search("jan");
+//			tester.search("1");
+			tester.search("the crystalline lens in vertebrates, including humans.");
 			
 			System.out.println("DONE");
 
@@ -59,10 +62,14 @@ public class LuceneTester {
 		System.out.println(hits.totalHits + " documents found:");
 		
 		// Print the search results
+		int rank = 1;
 		for(ScoreDoc scoreDoc : hits.scoreDocs) {
-			
+
 			Document doc = searcher.getDocument(scoreDoc);
-			System.out.println("\t+ docID: " + doc.get(LuceneConstants.DOCID));
+			System.out.print("\t+ Rank: " + rank);
+			System.out.print(" | docID: " + doc.get(LuceneConstants.DOCID));
+			System.out.println(" | Score: " + scoreDoc.score);
+			rank++;
 			
 		}
 		
