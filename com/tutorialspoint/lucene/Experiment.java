@@ -187,6 +187,10 @@ public class Experiment {
 	    		search(id, query.toString());
 	            
 	        }
+	        
+	        if (benchmark != null) {
+	        	System.out.println("\nMAP = " + benchmark.calculateMAP());
+	        }
         
 		} finally {
             if (inputStream != null) {

@@ -104,5 +104,21 @@ public class Benchmark {
 		System.out.println("AP = "           + query.averagePrecision);
 		
 	}
+	
+	/**
+	 * Calculate the MAP (Mean Average Precision).
+	 * 
+	 * @return
+	 */
+	public double calculateMAP() {
+		
+		double map = 0;
+		for (myQuery query : queries.values()) {
+			map += query.averagePrecision;
+		}
+		map /= queries.size();
+		
+		return map;
+	}
 
 }
