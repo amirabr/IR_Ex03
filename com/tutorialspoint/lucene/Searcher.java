@@ -54,6 +54,9 @@ public class Searcher {
 	 */
 	public TopDocs search(String searchQuery) throws IOException, ParseException {
       
+		// Escape the query
+		searchQuery = escapeQuery(searchQuery);
+		
 		// Parse the query
 		query = queryParser.parse(searchQuery);
 		
@@ -86,6 +89,23 @@ public class Searcher {
 		
 		// Close the index searcher
 		indexSearcher.close();
+		
+	}
+	
+	/**
+	 * Escape the following characters from the user query:
+	 * 
+	 * + - & | ! ( ) { } [ ] ^ " ~ * ? : \
+	 * 
+	 * this according to:
+	 * https://lucene.apache.org/core/2_9_4/queryparsersyntax.html#Escaping Special Characters
+	 * 
+	 * @param query
+	 * @return
+	 */
+	private String escapeQuery(String query) {
+		
+		return query.replaceAll("([\\+\\-\\&\\|\\!\\(\\)\\[\\]\\{\\}\\^\\\"\\~\\*\\?\\:\\\\])", "\\\\$1");
 		
 	}
 	
