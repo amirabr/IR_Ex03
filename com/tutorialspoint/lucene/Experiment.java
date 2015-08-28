@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 
 import org.apache.lucene.document.Document;
+import org.apache.lucene.index.CorruptIndexException;
 import org.apache.lucene.queryParser.ParseException;
 import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.TopDocs;
@@ -16,26 +17,33 @@ public class Experiment {
 	
 	private String queryFile;
 	private String docsFile;
-	private String truthFile;
 	private String indexDir;
 	private String retrievalAlgorithm;
 	
 	private Indexer indexer;
 	private Searcher searcher;
+	private Truth truth;
     private PrintWriter outputStream;
 
 	
 	public Experiment(String queryFile, String docsFile, String truthFile, String outputFile, String retrievalAlgorithm) throws IOException {
 		
+		// Read configuration
 		this.queryFile = queryFile;
 		this.docsFile = docsFile;
-		this.truthFile = truthFile;
 		this.retrievalAlgorithm = retrievalAlgorithm;
 		
+		// Initialize output writer
 		outputStream = new PrintWriter(new FileWriter(outputFile));
 		
+		// Calculate index directory (we'll put in the output file's folder)
 		File file = new File(outputFile);
 		indexDir = file.getParent() + "/_index";
+
+		// initialize truth object if given the benchmark file
+		if (!truthFile.equals("")) {
+			truth = new Truth(truthFile);
+		}
 		
 	}
 	
@@ -94,7 +102,7 @@ public class Experiment {
 	 */
 	private void search(String id, String searchQuery) throws IOException, ParseException {
 		
-		System.out.print("Executing queryID " + id + " \"");
+		System.out.print("Executing queryID #" + id + " \"");
 		System.out.print(searchQuery.substring(0, Math.min(searchQuery.length(), LuceneConstants.QUERY_PREVIEW)));
 		System.out.println("...\"");
 		
@@ -106,16 +114,15 @@ public class Experiment {
 	   
 		System.out.println(hits.totalHits + " documents found:");
 		
+		// If no hits were made, print 'dummy'
 		if (hits.totalHits == 0) {
 			
 			System.out.println("\t+ dummy");
-			
-            outputStream.printf("q%s, dummy, 1\n", id);
-
+            outputStream.printf("q%s,dummy,1\n", id);
 			
 		} else {
 		
-			// Print the search results
+			// Else, print the search results
 			int rank = 1;
 			for(ScoreDoc scoreDoc : hits.scoreDocs) {
 	
@@ -124,11 +131,15 @@ public class Experiment {
 				System.out.print("\t+ Rank: " + rank);
 				System.out.print(" | docID: " + docID);
 				System.out.println(" | Score: " + scoreDoc.score);
-				outputStream.printf("q%s, doc%s, %d\n", id, docID, rank);
+				outputStream.printf("q%s,doc%s,%d\n", id, docID, rank);
 				rank++;
 				
 			}
 		
+		}
+		
+		if (truth != null) {
+			printPrecisionAtK(id, hits);
 		}
 		
 		// Close the searcher
@@ -184,6 +195,32 @@ public class Experiment {
                 outputStream.close();
             }
         }
+		
+	}
+	
+	private void printPrecisionAtK(String queryID, TopDocs hits) throws CorruptIndexException, IOException {
+
+		int kCounter = 0;
+		int relevantCounter = 0;
+		for(ScoreDoc scoreDoc : hits.scoreDocs) {
+
+			kCounter++;
+			
+			Document doc = searcher.getDocument(scoreDoc);
+			String docID = doc.get(LuceneConstants.DOCID);
+			if (truth.isRelevant(queryID, docID)) {
+				relevantCounter++;
+			}
+			
+			if (kCounter == 5 || kCounter == 10) {
+				System.out.println("Prec@" + kCounter + " = " + relevantCounter*1.0 / kCounter);
+			}
+			
+			if (kCounter == 10) {
+				break;
+			}
+			
+		}
 		
 	}
 	
