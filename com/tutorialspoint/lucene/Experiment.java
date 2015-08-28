@@ -22,7 +22,7 @@ public class Experiment {
 	
 	private Indexer indexer;
 	private Searcher searcher;
-	private Truth truth;
+	private Benchmark benchmark;
     private PrintWriter outputStream;
 
 	
@@ -40,9 +40,9 @@ public class Experiment {
 		File file = new File(outputFile);
 		indexDir = file.getParent() + "/_index";
 
-		// initialize truth object if given the benchmark file
+		// initialize benchmark object if given the truth file
 		if (!truthFile.equals("")) {
-			truth = new Truth(truthFile);
+			benchmark = new Benchmark(truthFile);
 		}
 		
 	}
@@ -138,8 +138,9 @@ public class Experiment {
 		
 		}
 		
-		if (truth != null) {
-			printPrecisionAtK(id, hits);
+		if (benchmark != null) {
+			benchmark.analyzeQuery(id, hits, searcher);
+			benchmark.printQueryStatistics(id);
 		}
 		
 		// Close the searcher
@@ -195,32 +196,6 @@ public class Experiment {
                 outputStream.close();
             }
         }
-		
-	}
-	
-	private void printPrecisionAtK(String queryID, TopDocs hits) throws CorruptIndexException, IOException {
-
-		int kCounter = 0;
-		int relevantCounter = 0;
-		for(ScoreDoc scoreDoc : hits.scoreDocs) {
-
-			kCounter++;
-			
-			Document doc = searcher.getDocument(scoreDoc);
-			String docID = doc.get(LuceneConstants.DOCID);
-			if (truth.isRelevant(queryID, docID)) {
-				relevantCounter++;
-			}
-			
-			if (kCounter == 5 || kCounter == 10) {
-				System.out.println("Prec@" + kCounter + " = " + relevantCounter*1.0 / kCounter);
-			}
-			
-			if (kCounter == 10) {
-				break;
-			}
-			
-		}
 		
 	}
 	
