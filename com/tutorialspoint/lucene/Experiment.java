@@ -8,7 +8,6 @@ import java.io.IOException;
 import java.io.PrintWriter;
 
 import org.apache.lucene.document.Document;
-import org.apache.lucene.index.CorruptIndexException;
 import org.apache.lucene.queryParser.ParseException;
 import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.TopDocs;
@@ -138,6 +137,7 @@ public class Experiment {
 		
 		}
 		
+        // If benchmarking was enabled, calculate the AP
 		if (benchmark != null) {
 			benchmark.analyzeQuery(id, hits, searcher);
 			benchmark.printQueryStatistics(id);
@@ -188,6 +188,7 @@ public class Experiment {
 	            
 	        }
 	        
+	        // If benchmarking was enabled, calculate the MAP
 	        if (benchmark != null) {
 	        	System.out.println("\nMAP = " + benchmark.calculateMAP());
 	        }

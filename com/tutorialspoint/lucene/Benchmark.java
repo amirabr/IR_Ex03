@@ -101,7 +101,7 @@ public class Benchmark {
 		myQuery query = queries.get(queryID);
 		System.out.println("Prec@5 = "  + query.precisionAt[5]);
 		System.out.println("Prec@10 = " + query.precisionAt[10]);
-		System.out.println("AP = "           + query.averagePrecision);
+		System.out.println("AP = "      + query.averagePrecision);
 		
 	}
 	
@@ -116,7 +116,9 @@ public class Benchmark {
 		for (myQuery query : queries.values()) {
 			map += query.averagePrecision;
 		}
-		map /= queries.size();
+		if (queries.size() != 0) {
+			map /= queries.size();
+		}
 		
 		return map;
 	}
