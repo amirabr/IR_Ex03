@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.lucene.analysis.standard.StandardAnalyzer;
+import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.index.CorruptIndexException;
@@ -27,7 +27,6 @@ import org.apache.lucene.index.TermDocs;
 import org.apache.lucene.index.TermEnum;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
-import org.apache.lucene.util.Version;
 
 public class Indexer {
 
@@ -41,14 +40,14 @@ public class Indexer {
 	 * @throws IOException
 	 */
 	@SuppressWarnings("deprecation")
-	public Indexer(String indexDirectoryPath) throws IOException {
+	public Indexer(String indexDirectoryPath, Analyzer analyzer) throws IOException {
 
 		// Open the directory where the index is saved
 		indexDirectory = FSDirectory.open(new File(indexDirectoryPath));
 
 		// Initialize the index writer
 		writer = new IndexWriter(indexDirectory,
-								 new StandardAnalyzer(Version.LUCENE_36),
+								 analyzer,
 								 true,
 								 IndexWriter.MaxFieldLength.UNLIMITED);
 		

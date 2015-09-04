@@ -9,6 +9,12 @@ import org.apache.lucene.index.CorruptIndexException;
 import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.TopDocs;
 
+/**
+ * Holds the truth and calculates statistics.
+ * 
+ * @author amir
+ *
+ */
 public class Benchmark {
 	
 	private Truth truth; 					// Golden standard
@@ -74,6 +80,7 @@ public class Benchmark {
 				query.averagePrecision += relevantCounter*1.0 / kCounter;
 			}
 			
+			// Save prec@k
 			query.precisionAt[kCounter] = relevantCounter*1.0 / kCounter;
 			
 		}

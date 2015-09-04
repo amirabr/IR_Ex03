@@ -3,7 +3,7 @@ package com.tutorialspoint.lucene;
 import java.io.File;
 import java.io.IOException;
 
-import org.apache.lucene.analysis.standard.StandardAnalyzer;
+import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.CorruptIndexException;
 import org.apache.lucene.queryParser.ParseException;
@@ -29,7 +29,7 @@ public class Searcher {
 	 * @throws IOException
 	 */
 	@SuppressWarnings("deprecation")
-	public Searcher(String indexDirectoryPath) throws IOException {
+	public Searcher(String indexDirectoryPath, Analyzer analyzer) throws IOException {
 		
 		// Open the directory where the index is saved
 		Directory indexDirectory = FSDirectory.open(new File(indexDirectoryPath));
@@ -40,7 +40,7 @@ public class Searcher {
 		// Initialize the query parser
 		queryParser = new QueryParser(Version.LUCENE_36,
 									  LuceneConstants.CONTENTS,
-									  new StandardAnalyzer(Version.LUCENE_36));
+									  analyzer);
 		
 	}
 

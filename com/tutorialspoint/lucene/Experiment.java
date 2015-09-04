@@ -8,10 +8,15 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Set;
 
+import org.apache.lucene.analysis.Analyzer;
+import org.apache.lucene.analysis.SimpleAnalyzer;
+import org.apache.lucene.analysis.StopAnalyzer;
+import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.queryParser.ParseException;
 import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.TopDocs;
+import org.apache.lucene.util.Version;
 
 public class Experiment {
 	
@@ -52,14 +57,14 @@ public class Experiment {
 	 * 
 	 * @throws IOException
 	 */
-	private void createIndex() throws IOException {
+	private void createIndex(Analyzer analyzer) throws IOException {
 
 		int numIndexed;
 		
 		System.out.println("Starting index:");
 		
 		// Create the index
-		indexer = new Indexer(indexDir);
+		indexer = new Indexer(indexDir, analyzer);
 		numIndexed = indexer.createIndex(docsFile);
 		indexer.close();
 		
@@ -94,20 +99,23 @@ public class Experiment {
    }
 	
 	/**
-	 * Searches the index for the given query.
+	 * Searches the index for the given query,
+	 * using the given analyzer.
 	 * 
+	 * @param id
 	 * @param searchQuery
+	 * @param analyzer
 	 * @throws IOException
 	 * @throws ParseException
 	 */
-	private void search(String id, String searchQuery) throws IOException, ParseException {
+	private void search(String id, String searchQuery, Analyzer analyzer) throws IOException, ParseException {
 		
 		System.out.print("Executing queryID #" + id + " \"");
 		System.out.print(searchQuery.substring(0, Math.min(searchQuery.length(), LuceneConstants.QUERY_PREVIEW)));
 		System.out.println("...\"");
 		
 		// Initialize the searcher
-		searcher = new Searcher(indexDir);
+		searcher = new Searcher(indexDir, analyzer);
 	      
 		// Execute the query
 		TopDocs hits = searcher.search(searchQuery);
@@ -128,9 +136,9 @@ public class Experiment {
 	
 				Document doc = searcher.getDocument(scoreDoc);
 				String docID = doc.get(LuceneConstants.DOCID);
-				System.out.print("\t+ Rank: " + rank);
-				System.out.print(" | docID: " + docID);
-				System.out.println(" | Score: " + scoreDoc.score);
+//				System.out.print("\t+ Rank: " + rank);
+//				System.out.print(" | docID: " + docID);
+//				System.out.println(" | Score: " + scoreDoc.score);
 				outputStream.printf("q%s,doc%s,%d\n", id, docID, rank);
 				rank++;
 				
@@ -150,12 +158,14 @@ public class Experiment {
 	}
 	
 	/**
-	 * Reads the query file and executes the queries one-by-one.
-	 *  
+	 * Reads the query file and executes the queries one-by-one,
+	 * using the given analyzer.
+	 * 
+	 * @param analyzer
 	 * @throws IOException
-	 * @throws ParseException 
+	 * @throws ParseException
 	 */
-	private void readQueries() throws IOException, ParseException {
+	private void readQueries(Analyzer analyzer) throws IOException, ParseException {
 		
 		BufferedReader inputStream = null;
 		StringBuilder query;
@@ -185,7 +195,7 @@ public class Experiment {
 	        	}
 	    		
 	    		// Search query
-	    		search(id, query.toString());
+	    		search(id, query.toString(), analyzer);
 	            
 	        }
 	        
@@ -216,13 +226,29 @@ public class Experiment {
 		// Delete the old index
 		deleteIndex();
 		
-		// Create the new index
-		createIndex();
+		// Create a new index with a SimpleAnalyzer
+		createIndex(new SimpleAnalyzer(Version.LUCENE_36));		
 		
+		// Fetch the top 20 repeating terms in the collection
 		Set<String> top20terms = indexer.getTop20Terms();
 		
+		// Delete the old index, again :(
+		deleteIndex();
+		
+		// Let the user choose the analyzer type (basic/advanced)
+		Analyzer analyzer;
+		if (isBasic) {
+			analyzer = new StopAnalyzer(Version.LUCENE_36, top20terms);
+		} else {
+//			analyzer = new StandardAnalyzer(Version.LUCENE_36, top20terms);
+			analyzer = new AdvancedAnalyzer(top20terms);
+		}
+		
+		// Create a new index with a basic/advanced analyzer
+		createIndex(analyzer);
+		
 		// Execute the queries
-//		readQueries();
+		readQueries(analyzer);
 		
 	}
 
