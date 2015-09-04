@@ -6,6 +6,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.Set;
 
 import org.apache.lucene.document.Document;
 import org.apache.lucene.queryParser.ParseException;
@@ -17,7 +18,7 @@ public class Experiment {
 	private String queryFile;
 	private String docsFile;
 	private String indexDir;
-	private String retrievalAlgorithm;
+	private boolean isBasic;
 	
 	private Indexer indexer;
 	private Searcher searcher;
@@ -30,7 +31,7 @@ public class Experiment {
 		// Read configuration
 		this.queryFile = queryFile;
 		this.docsFile = docsFile;
-		this.retrievalAlgorithm = retrievalAlgorithm;
+		isBasic = retrievalAlgorithm.toLowerCase() == "basic" ? true : false;
 		
 		// Initialize output writer
 		outputStream = new PrintWriter(new FileWriter(outputFile));
@@ -218,8 +219,10 @@ public class Experiment {
 		// Create the new index
 		createIndex();
 		
+		Set<String> top20terms = indexer.getTop20Terms();
+		
 		// Execute the queries
-		readQueries();
+//		readQueries();
 		
 	}
 

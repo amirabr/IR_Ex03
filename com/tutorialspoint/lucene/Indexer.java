@@ -5,19 +5,34 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.StringReader;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.index.CorruptIndexException;
+import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.IndexWriter;
+import org.apache.lucene.index.Term;
+import org.apache.lucene.index.TermDocs;
+import org.apache.lucene.index.TermEnum;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.util.Version;
 
 public class Indexer {
 
-	private IndexWriter writer; 	// Creates and maintains an index
+	private Directory indexDirectory; 		// The index directory
+	private IndexWriter writer; 			// Creates and maintains an index
 	
 	/**
 	 * Constructor.
@@ -29,7 +44,7 @@ public class Indexer {
 	public Indexer(String indexDirectoryPath) throws IOException {
 
 		// Open the directory where the index is saved
-		Directory indexDirectory = FSDirectory.open(new File(indexDirectoryPath));
+		indexDirectory = FSDirectory.open(new File(indexDirectoryPath));
 
 		// Initialize the index writer
 		writer = new IndexWriter(indexDirectory,
@@ -154,6 +169,103 @@ public class Indexer {
         }
 
 		return writer.numDocs();
+		
+	}
+	
+	/**
+	 * Returns the top 20 terms from the collection.
+	 * 
+	 * @return
+	 * @throws CorruptIndexException
+	 * @throws IOException
+	 */
+	public Set<String> getTop20Terms() throws CorruptIndexException, IOException {
+		
+		IndexReader reader;
+		Map<String, Integer> unsortedFrequencyMap;
+		Map<String, Integer> sortedFrequencyMap;
+		Set<String> top20;
+		int termFrequency;
+		String termText;
+		
+		unsortedFrequencyMap = new HashMap<String, Integer>();
+		reader = IndexReader.open(indexDirectory);
+		termFrequency = 0;
+		termText = "";
+		
+		// Iterate over all the terms in the collection
+		TermEnum terms = reader.terms();
+		while (terms.next()) {
+			
+			// Grab the term
+			Term term = terms.term();
+			termText = term.text();
+			
+			// Iterate over all <document, frequency> pairs for that term and sum up the frequencies
+			TermDocs td = reader.termDocs(term);
+			while (td.next()) {
+				termFrequency += td.freq();
+			}
+			td.close();
+			
+			// Insert the <term, frequency> pair to the unsorted dictionary
+			unsortedFrequencyMap.put(termText, termFrequency);
+			
+			// Reset counter
+			termFrequency = 0;
+
+		}
+		terms.close();
+		reader.close();
+		
+		// Sort the frequency dictionary
+		sortedFrequencyMap = sortByComparator(unsortedFrequencyMap);
+
+		// Add the top 20 entries to the return set
+		top20 = new HashSet<String>();
+		int counter = 0;
+		System.out.println("Top 20 terms are:");
+		for (Map.Entry<String, Integer> entry : sortedFrequencyMap.entrySet()) {
+			System.out.println("\t" + entry.getKey() + " - " + entry.getValue());
+			top20.add(entry.getKey());
+			if(++counter == 20) {
+				break;
+			}
+		}
+		
+		return top20;
+		
+	}
+	
+	/**
+	 * Helper method for getTop20Terms().
+	 * Sorts the map by values, instead of keys, by descending order.
+	 * Taken from: http://www.mkyong.com/java/how-to-sort-a-map-in-java/
+	 * 
+	 * @param unsortMap
+	 * @return
+	 */
+	private Map<String, Integer> sortByComparator(Map<String, Integer> unsortMap) {
+
+		// Convert Map to List
+		List<Map.Entry<String, Integer>> list = new LinkedList<Map.Entry<String, Integer>>(unsortMap.entrySet());
+
+		// Sort list with comparator, to compare the Map values
+		Collections.sort(list, new Comparator<Map.Entry<String, Integer>>() {
+			public int compare(Map.Entry<String, Integer> o1,
+                               Map.Entry<String, Integer> o2) {
+				return (o2.getValue()).compareTo(o1.getValue());
+			}
+		});
+
+		// Convert sorted map back to a Map
+		Map<String, Integer> sortedMap = new LinkedHashMap<String, Integer>();
+		for (Iterator<Map.Entry<String, Integer>> it = list.iterator(); it.hasNext();) {
+			Map.Entry<String, Integer> entry = it.next();
+			sortedMap.put(entry.getKey(), entry.getValue());
+		}
+		
+		return sortedMap;
 		
 	}
 	
