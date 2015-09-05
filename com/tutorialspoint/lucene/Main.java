@@ -12,7 +12,7 @@ public class Main {
 		String docsFile 	= "/Users/amir/Desktop/lucene/Parameters/docs.txt";
 		String truthFile 	= "/Users/amir/Desktop/lucene/Parameters/truth.txt";
 		String outputFile 	= "/Users/amir/Desktop/lucene/Parameters/output.txt";
-		String retrievalAlgorithm = "Basic1";
+		String retrievalAlgorithm = "Basic";
 		
 		try {
 			

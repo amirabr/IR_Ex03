@@ -11,6 +11,12 @@ public class Truth {
 
 	private Map<String,ArrayList<String>> multiMap;
 	
+	/**
+	 * Constructor.
+	 * 
+	 * @param truthPath
+	 * @throws IOException
+	 */
 	public Truth(String truthPath) throws IOException {
 		
 		// Initialize the dictionary
@@ -21,13 +27,19 @@ public class Truth {
 		
 	}
 	
+	/**
+	 * Loads the truth file into the dictionary.
+	 * 
+	 * @param truthPath
+	 * @throws IOException
+	 */
 	private void load(String truthPath) throws IOException {
 		
 		BufferedReader inputStream = null;
 		
 		try {
 			
-			System.out.println("Reading the truth:");
+			System.out.println("Reading the truth...");
 			
             inputStream = new BufferedReader(new FileReader(truthPath));
 
@@ -39,7 +51,7 @@ public class Truth {
             	String queryID = parts[0];
             	String docID = parts[2];
             	
-            	System.out.printf("\t- docID %s is relevant to queryID %s\n", docID, queryID);
+//            	System.out.printf("\t- docID %s is relevant to queryID %s\n", docID, queryID);
             	
             	// Add it to the dictionary
             	if (multiMap.containsKey(queryID)) {

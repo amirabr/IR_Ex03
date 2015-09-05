@@ -113,7 +113,7 @@ public class Indexer {
 	 */
 	private void indexDocument(String docID, StringReader contents) throws CorruptIndexException, IOException {
 		
-		System.out.println("\tIndexing docID #" + docID + "...");
+//		System.out.println("\tIndexing docID #" + docID + "...");
 		Document document = createDocument(docID, contents);
 		writer.addDocument(document);
 		

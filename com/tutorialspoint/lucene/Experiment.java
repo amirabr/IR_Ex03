@@ -36,7 +36,7 @@ public class Experiment {
 		// Read configuration
 		this.queryFile = queryFile;
 		this.docsFile = docsFile;
-		isBasic = retrievalAlgorithm.toLowerCase() == "basic" ? true : false;
+		isBasic = retrievalAlgorithm.equalsIgnoreCase("basic") ? true : false;
 		
 		// Initialize output writer
 		outputStream = new PrintWriter(new FileWriter(outputFile));
@@ -61,7 +61,7 @@ public class Experiment {
 
 		int numIndexed;
 		
-		System.out.println("Starting index:");
+		System.out.println("Starting index...");
 		
 		// Create the index
 		indexer = new Indexer(indexDir, analyzer);
@@ -80,7 +80,7 @@ public class Experiment {
 	   
 	   int numDeleted = 0;
 	   
-	   System.out.println("Deleting old index:"); 
+	   System.out.println("Deleting old index..."); 
 
 	   // List all the old index files
 	   File[] files = new File(indexDir).listFiles();
@@ -88,7 +88,7 @@ public class Experiment {
 	   // Iterate over the files and delete them
 	   for (File file : files) {
 		   if (!file.isDirectory() && !file.isHidden() && file.exists() && file.canRead()) {
-			   System.out.println("\tDeleting: " + file.getAbsolutePath());
+//			   System.out.println("\tDeleting: " + file.getAbsolutePath());
 			   file.delete();
 			   numDeleted++;
 		   }
@@ -110,7 +110,7 @@ public class Experiment {
 	 */
 	private void search(String id, String searchQuery, Analyzer analyzer) throws IOException, ParseException {
 		
-		System.out.print("Executing queryID #" + id + " \"");
+		System.out.print("\nExecuting queryID #" + id + " \"");
 		System.out.print(searchQuery.substring(0, Math.min(searchQuery.length(), LuceneConstants.QUERY_PREVIEW)));
 		System.out.println("...\"");
 		
@@ -239,9 +239,11 @@ public class Experiment {
 		Analyzer analyzer;
 		if (isBasic) {
 			analyzer = new StopAnalyzer(Version.LUCENE_36, top20terms);
+			System.out.println("\n*** Using Basic Analyzer *** \n");
 		} else {
 //			analyzer = new StandardAnalyzer(Version.LUCENE_36, top20terms);
 			analyzer = new AdvancedAnalyzer(top20terms);
+			System.out.println("\n*** Using Advanced Analyzer *** \n");
 		}
 		
 		// Create a new index with a basic/advanced analyzer
