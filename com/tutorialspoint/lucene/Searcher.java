@@ -6,6 +6,7 @@ import java.io.IOException;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.CorruptIndexException;
+import org.apache.lucene.queryParser.MultiFieldQueryParser;
 import org.apache.lucene.queryParser.ParseException;
 import org.apache.lucene.queryParser.QueryParser;
 import org.apache.lucene.search.IndexSearcher;
@@ -16,6 +17,12 @@ import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.util.Version;
 
+/**
+ * Searches the index.
+ * 
+ * @author amir
+ *
+ */
 public class Searcher {
 
 	IndexSearcher indexSearcher; 	// Implements search over an index
@@ -29,7 +36,7 @@ public class Searcher {
 	 * @throws IOException
 	 */
 	@SuppressWarnings("deprecation")
-	public Searcher(String indexDirectoryPath, Analyzer analyzer) throws IOException {
+	public Searcher(String indexDirectoryPath, Analyzer analyzer, boolean isBasic) throws IOException {
 		
 		// Open the directory where the index is saved
 		Directory indexDirectory = FSDirectory.open(new File(indexDirectoryPath));
@@ -37,10 +44,21 @@ public class Searcher {
 		// Initialize the index searcher
 		indexSearcher = new IndexSearcher(indexDirectory);
 		
-		// Initialize the query parser
-		queryParser = new QueryParser(Version.LUCENE_36,
-									  LuceneConstants.CONTENTS,
-									  analyzer);
+		if (isBasic) {
+			
+			// Initialize the query parser
+			queryParser = new QueryParser(Version.LUCENE_36,
+										  LuceneConstants.CONTENTS,
+										  analyzer);
+			
+		} else {
+			
+			String[] fields = {LuceneConstants.TITLE, LuceneConstants.BODY};
+			queryParser = new MultiFieldQueryParser(Version.LUCENE_36,
+													fields,
+													analyzer);
+			
+		}
 		
 	}
 

@@ -12,16 +12,31 @@ import org.apache.lucene.analysis.standard.StandardFilter;
 import org.apache.lucene.analysis.standard.StandardTokenizer;
 import org.apache.lucene.util.Version;
 
+/**
+ * My attempt at a better analyzer.
+ * 
+ * @author amir
+ *
+ */
 public class AdvancedAnalyzer  extends Analyzer {
 	
-	Set<String> stopList;
+	Set<String> stopList; 		// The stop-list
 	
+	/**
+	 * Constructor.
+	 * 
+	 * @param stopList
+	 */
 	public AdvancedAnalyzer(Set<String> stopList) {
 		
 		this.stopList = stopList;
 		
 	}
 	
+	/**
+	 * Create a chain of tokenizers and filters to create a token stream.
+	 * 
+	 */
 	public TokenStream tokenStream(String fieldName, Reader reader) {
 
 	    StandardTokenizer tokenStream = new StandardTokenizer(Version.LUCENE_36, reader);
@@ -39,4 +54,3 @@ public class AdvancedAnalyzer  extends Analyzer {
 	  }
 
 }
-

@@ -11,40 +11,51 @@ import java.util.Set;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.SimpleAnalyzer;
 import org.apache.lucene.analysis.StopAnalyzer;
-import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.queryParser.ParseException;
 import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.util.Version;
 
+/**
+ * Runs a single experiment on the given query set.
+ * 
+ * @author amir
+ *
+ */
 public class Experiment {
 	
-	private String queryFile;
-	private String docsFile;
-	private String indexDir;
-	private boolean isBasic;
+	private String queryFile; 				// queryFile from the parameterFile
+	private String docsFile; 				// docsFile from the parameterFile
+	private String indexDir; 				// Where to store the index
+	private boolean isBasic; 				// Basic/Advanced configuration
 	
-	private Indexer indexer;
-	private Searcher searcher;
-	private Benchmark benchmark;
-    private PrintWriter outputStream;
+	private Indexer indexer; 				// Creates and manages the index
+	private Searcher searcher; 				// Searches the index
+	private Benchmark benchmark; 			// Calculates statistics
+    private PrintWriter outputStream; 		// Prints log
 
-	
+	/**
+	 * Constructor.
+	 * 
+	 * @param queryFile
+	 * @param docsFile
+	 * @param truthFile
+	 * @param outputFile
+	 * @param retrievalAlgorithm
+	 * @throws IOException
+	 */
 	public Experiment(String queryFile, String docsFile, String truthFile, String outputFile, String retrievalAlgorithm) throws IOException {
 		
 		// Read configuration
 		this.queryFile = queryFile;
 		this.docsFile = docsFile;
+		indexDir = "_index";
 		isBasic = retrievalAlgorithm.equalsIgnoreCase("basic") ? true : false;
 		
 		// Initialize output writer
 		outputStream = new PrintWriter(new FileWriter(outputFile));
 		
-		// Calculate index directory (we'll put in the output file's folder)
-		File file = new File(outputFile);
-		indexDir = file.getParent() + "/_index";
-
 		// initialize benchmark object if given the truth file
 		if (!truthFile.equals("")) {
 			benchmark = new Benchmark(truthFile);
@@ -64,7 +75,7 @@ public class Experiment {
 		System.out.println("Starting index...");
 		
 		// Create the index
-		indexer = new Indexer(indexDir, analyzer);
+		indexer = new Indexer(indexDir, analyzer, isBasic);
 		numIndexed = indexer.createIndex(docsFile);
 		indexer.close();
 		
@@ -80,10 +91,16 @@ public class Experiment {
 	   
 	   int numDeleted = 0;
 	   
+	   // If the old index doesn't exist, return
+	   File index = new File(indexDir);
+	   if (!index.exists() || !index.isDirectory()) {
+		   return;
+	   }
+	   
 	   System.out.println("Deleting old index..."); 
 
 	   // List all the old index files
-	   File[] files = new File(indexDir).listFiles();
+	   File[] files = index.listFiles();
       
 	   // Iterate over the files and delete them
 	   for (File file : files) {
@@ -115,7 +132,7 @@ public class Experiment {
 		System.out.println("...\"");
 		
 		// Initialize the searcher
-		searcher = new Searcher(indexDir, analyzer);
+		searcher = new Searcher(indexDir, analyzer, isBasic);
 	      
 		// Execute the query
 		TopDocs hits = searcher.search(searchQuery);
@@ -241,6 +258,7 @@ public class Experiment {
 			analyzer = new StopAnalyzer(Version.LUCENE_36, top20terms);
 			System.out.println("\n*** Using Basic Analyzer *** \n");
 		} else {
+//			analyzer = new StopAnalyzer(Version.LUCENE_36, top20terms);
 //			analyzer = new StandardAnalyzer(Version.LUCENE_36, top20terms);
 			analyzer = new AdvancedAnalyzer(top20terms);
 			System.out.println("\n*** Using Advanced Analyzer *** \n");

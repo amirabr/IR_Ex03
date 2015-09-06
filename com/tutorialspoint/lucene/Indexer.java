@@ -28,10 +28,17 @@ import org.apache.lucene.index.TermEnum;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 
+/**
+ * Creates and manages the index.
+ * 
+ * @author amir
+ *
+ */
 public class Indexer {
 
 	private Directory indexDirectory; 		// The index directory
 	private IndexWriter writer; 			// Creates and maintains an index
+	private boolean isBasic; 				// Basic/Advanced mode
 	
 	/**
 	 * Constructor.
@@ -40,8 +47,10 @@ public class Indexer {
 	 * @throws IOException
 	 */
 	@SuppressWarnings("deprecation")
-	public Indexer(String indexDirectoryPath, Analyzer analyzer) throws IOException {
+	public Indexer(String indexDirectoryPath, Analyzer analyzer, boolean isBasic) throws IOException {
 
+		this.isBasic = isBasic;
+		
 		// Open the directory where the index is saved
 		indexDirectory = FSDirectory.open(new File(indexDirectoryPath));
 
@@ -68,32 +77,57 @@ public class Indexer {
 
 	/**
 	 * Creates a new document from the given parameters and returns it.
+	 * Basic configuration indexes the entire document in the "contents" field,
+	 * Advanced configuration indexes the title and the body separately.
 	 * 
 	 * @param docID
 	 * @param contents
 	 * @return
 	 */
-	private Document createDocument(String docID, StringReader contents) {
-      
-		Document document;
-		Field docIDField;
-		Field contentsField;
+	private Document createDocument(String docID, String contents) {
 		
 		// Initialize the document object
-		document = new Document();
+		Document document = new Document();
 
-		// Define the 'contents' field
-		contentsField = new Field(LuceneConstants.CONTENTS,
-								 contents);
+		if (isBasic) {
+		
+			// Define the 'contents' field
+			Field contentsField = new Field(LuceneConstants.CONTENTS,
+									        new StringReader(contents));
+			
+			// Add the fields to the document
+			document.add(contentsField);
 
+		} else {
+			
+			int firstDot = contents.indexOf('.');
+			String title = contents.substring(0, firstDot);
+			String body = contents.substring(firstDot+1);
+			
+			// Define the 'title' field
+			Field titleField = new Field(LuceneConstants.TITLE,
+								         new StringReader(title));
+			
+			// Define the 'body' field
+			Field bodyField = new Field(LuceneConstants.BODY,
+								        new StringReader(body));
+			
+			// Boost the title field
+			titleField.setBoost(0.5f);
+						
+			// Add the fields to the document
+			document.add(titleField);
+			document.add(bodyField);
+			
+		}
+		
 		// Define the 'docID' field
-		docIDField = new Field(LuceneConstants.DOCID,
+		Field docIDField = new Field(LuceneConstants.DOCID,
 							   docID,
 							   Field.Store.YES,
 							   Field.Index.NOT_ANALYZED);
 
-		// Add the fields to the document
-		document.add(contentsField);
+		// Add the field to the document
 		document.add(docIDField);
 
 		// Return it
@@ -111,7 +145,7 @@ public class Indexer {
 	 * @throws CorruptIndexException
 	 * @throws IOException
 	 */
-	private void indexDocument(String docID, StringReader contents) throws CorruptIndexException, IOException {
+	private void indexDocument(String docID, String contents) throws CorruptIndexException, IOException {
 		
 //		System.out.println("\tIndexing docID #" + docID + "...");
 		Document document = createDocument(docID, contents);
@@ -157,7 +191,7 @@ public class Indexer {
 	        	}
 	    		
 	    		// Create the document
-	    		indexDocument(id, new StringReader(contents.toString()));
+	    		indexDocument(id, contents.toString());
 	            
 	        }
         

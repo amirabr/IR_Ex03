@@ -7,9 +7,15 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Holds the golden standard.
+ * 
+ * @author amir
+ *
+ */
 public class Truth {
 
-	private Map<String,ArrayList<String>> multiMap;
+	private Map<String,ArrayList<String>> multiMap; 		// <queryId, relevantDoc#1, relevantDoc#2, ...>
 	
 	/**
 	 * Constructor.

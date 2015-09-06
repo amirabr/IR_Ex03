@@ -12,6 +12,10 @@ public class myQuery {
 	public double[] precisionAt; 		// prec@k array
 	public double averagePrecision; 	// AP
 	
+	/**
+	 * Constructor.
+	 * 
+	 */
 	public myQuery() {
 		
 		// Note: This array starts from 1 and goes up to LuceneConstants.MAX_SEARCH 
